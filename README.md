@@ -3,6 +3,7 @@
 ### Overview
 
 This repository contains an op-for-op PyTorch reimplementation of [Accurate Image Super-Resolution Using Very Deep Convolutional Networks](https://arxiv.org/abs/1511.04587).
+Referance of original implementation: https://github.com/Lornatang/VDSR-PyTorch.git
 
 ### Table of contents
 
@@ -10,8 +11,8 @@ This repository contains an op-for-op PyTorch reimplementation of [Accurate Imag
     - [Overview](#overview)
     - [Table of contents](#table-of-contents)
     - [About Accurate Image Super-Resolution Using Very Deep Convolutional Networks](#about-accelerating-the-super-resolution-convolutional-neural-network)
-    - [Download weights](#download-weights)
-    - [Download datasets](#download-datasets)
+    - [Training dataset](#test)
+    - [Testing dataset](#test)
     - [Test](#test)
     - [Train](#train)
     - [Result](#result)
@@ -30,52 +31,42 @@ learn residuals onlyb and use extremely high learning rates
 (104 times higher than SRCNN) enabled by adjustable gradient clipping. Our proposed method performs better than existing methods in accuracy and
 visual improvements in our results are easily noticeable.
 
-## Download weights
+## Training dataset
+For training and validation a combination of T-91. BSD 200, and Technik datasets have been used.
+-config.py line 40: Update directory as per the desired folder structure.
+           line 41: Update directory as per the desired folder structure.
 
-- [Google Driver](https://drive.google.com/drive/folders/17ju2HN7Y6pyPK2CC_AqnAfTOe9_3hCQ8?usp=sharing)
-- [Baidu Driver](https://pan.baidu.com/s/1yNs4rqIb004-NKEdKBJtYg?pwd=llot)
 
-## Download datasets
+## Testing dataset
+Testing has been performed on Set 5 and Urban 100 dataset.
+-config.py line 72: Update directory as per the desired folder structure.
+           line 73: Update directory as per the desired folder structure.
 
-Contains T91, Set5, Set14, BSDS100 and BSDS200, etc.
-
-- [Google Driver](https://drive.google.com/drive/folders/1A6lzGeQrFMxPqJehK9s37ce-tPDj20mD?usp=sharing)
-- [Baidu Driver](https://pan.baidu.com/s/1o-8Ty_7q6DiS3ykLU09IVg?pwd=llot)
 
 ## Test
-
 Modify the contents of the file as follows.
 
-- line 30: `upscale_factor` change to the magnification you need to enlarge.
-- line 32: `mode` change Set to valid mode.
-- line 65: `model_path` change weight address after training.
+-config.py line 31: `upscale_factor` change to the magnification you need to enlarge.
+           line 33: `mode` change Set to "valid" mode.
 
 ## Train
-
 Modify the contents of the file as follows.
 
-- line 30: `upscale_factor` change to the magnification you need to enlarge.
-- line 32: `mode` change Set to train mode.
+-config.py line 31: `upscale_factor` change to the magnification you need to enlarge.
+           line 33: `mode` change Set to "train" mode.
 
 If you want to load weights that you've trained before, modify the contents of the file as follows.
 
-- line 47: `start_epoch` change number of training iterations in the previous round.
-- line 48: `resume` change weight address that needs to be loaded.
+-config.py line 49: `start_epoch` change number of training iterations in the previous round.
+           line 50: `resume` change weight address that needs to be loaded.
 
 ## Result
-
-Source of original paper results: https://arxiv.org/pdf/1511.04587.pdf
-
-In the following table, the value in `()` indicates the result of the project, and `-` indicates no test.
-
-| Dataset | Scale |       PSNR       |
-|:-------:|:-----:|:----------------:|
-|  Set5   |   2   | 37.53(**37.41**) |
-|  Set5   |   3   | 33.66(**33.44**) |
-|  Set5   |   4   | 31.35(**31.05**) |
-
-Low Resolution / Super Resolution / High Resolution
-<span align="center"><img src="assets/result.png"/></span>
+| Dataset | Scale |     Avg.PSNR     |     Avg.SSIM(Grayscale)     |     Avg.SSIM(RGB)     |
+|:-------:|:-----:|:----------------:|:---------------------------:|:---------------------:|
+|  Set5   |   2   |       36.06      |             0.96            |          0.95         |
+|  Set5   |   4   |       28.27      |             0.89            |          0.89         |
+|Urban 100|   2   |       29.95      |             0.86            |          0.85         |
+|Urban 100|   4   |       24.02      |             0.72            |          0.70         |
 
 ### Credit
 

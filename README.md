@@ -85,13 +85,11 @@ learn residuals onlyb and use extremely high learning rates
 (104 times higher than SRCNN) enabled by adjustable gradient clipping. Our proposed method performs better than existing methods in accuracy and
 visual improvements in our results are easily noticeable.
 
-[[Paper]](https://arxiv.org/pdf/1511.04587) [[Author's implements(MATLAB)]](https://cv.snu.ac.kr/research/VDSR/VDSR_code.zip)
-
-```
-@inproceedings{vedaldi15matconvnet,
-  author    = {A. Vedaldi and K. Lenc},
-  title     = {MatConvNet -- Convolutional Neural Networks for MATLAB},
-  booktitle = {Proceeding of the {ACM} Int. Conf. on Multimedia},
-  year      = {2015},
+@InProceedings{Lee2016,
+  author    = {Kim, Jiwon and Lee, Jung Kwon and Lee, Kyoung Mu},
+  booktitle = {IEEE Conference on Computer Vision and Pattern Recognition},
+  title     = {Accurate Image Super-Resolution Using Very Deep Convolutional Networks},
+  year      = {2016},
+  month     = dec,
+  doi       = {10.1109/cvpr.2016.182},
 }
-```

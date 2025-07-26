@@ -33,32 +33,34 @@ visual improvements in our results are easily noticeable.
 
 ## Training dataset
 For training and validation a combination of T-91. BSD 200, and Technik datasets have been used.
--config.py line 40: Update directory as per the desired folder structure.
-           line 41: Update directory as per the desired folder structure.
+Modify config.py as follows:
+- line 40: Update directory as per the desired folder structure.
+- line 41: Update directory as per the desired folder structure.
 
 
 ## Testing dataset
 Testing has been performed on Set 5 and Urban 100 dataset.
--config.py line 72: Update directory as per the desired folder structure.
-           line 73: Update directory as per the desired folder structure.
+Modify config.py as follows:
+- line 72: Update directory as per the desired folder structure.
+- line 73: Update directory as per the desired folder structure.
 
 
 ## Test
-Modify the contents of the file as follows.
+Modify config.py as follows:
 
--config.py line 31: `upscale_factor` change to the magnification you need to enlarge.
-           line 33: `mode` change Set to "valid" mode.
+- line 31: `upscale_factor` change to the magnification you need to enlarge.
+- line 33: `mode` change Set to "valid" mode.
 
 ## Train
-Modify the contents of the file as follows.
+Modify config.py as follows:
 
--config.py line 31: `upscale_factor` change to the magnification you need to enlarge.
-           line 33: `mode` change Set to "train" mode.
+- line 31: `upscale_factor` change to the magnification you need to enlarge.
+- line 33: `mode` change Set to "train" mode.
 
 If you want to load weights that you've trained before, modify the contents of the file as follows.
-
--config.py line 49: `start_epoch` change number of training iterations in the previous round.
-           line 50: `resume` change weight address that needs to be loaded.
+Modify config.py as follows:
+- line 49: `start_epoch` change number of training iterations in the previous round.
+- line 50: `resume` change weight address that needs to be loaded.
 
 ## Result
 | Dataset | Scale |     Avg.PSNR     |     Avg.SSIM(Grayscale)     |     Avg.SSIM(RGB)     |

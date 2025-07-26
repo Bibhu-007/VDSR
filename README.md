@@ -84,7 +84,7 @@ learn residuals onlyb and use extremely high learning rates
 (104 times higher than SRCNN) enabled by adjustable gradient clipping. Our proposed method performs better than existing methods in accuracy and
 visual improvements in our results are easily noticeable.
 
-[[Paper]]((https://ieeexplore.ieee.org/document/7780551))
+[[Paper]](([https://ieeexplore.ieee.org/document/7780551](https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=7780551)))
 ```
 @InProceedings{Lee2016,
   author    = {Kim, Jiwon and Lee, Jung Kwon and Lee, Kyoung Mu},

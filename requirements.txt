@@ -5,3 +5,5 @@ tqdm
 setuptools
 torchvision
 natsort
+scikit-image
+tensorboard

@@ -13,7 +13,6 @@
 # ==============================================================================
 """File description: Realize the verification function after model training."""
 import os
-
 import cv2
 import numpy as np
 import torch
@@ -37,18 +36,14 @@ def main() -> None:
     model.load_state_dict(checkpoint["state_dict"])
     print(f"Load VDSR model weights `{os.path.abspath(config.model_path)}` successfully.")
 
-    # Create a folder of super-resolution experiment results
-    results_dir = os.path.join("results", "test", config.exp_name)
-    if not os.path.exists(results_dir):
-        os.makedirs(results_dir)
-
     # Start the verification mode of the model.
     model.eval()
     # Turn on half-precision inference.
     model.half()
 
     # Initialize the image evaluation index.
-    total_psnr = 0.0
+    total_psnr_grayscale = 0.0
+    total_psnr_rgb = 0.0
     total_ssim = 0.0
     total_ssim_rgb = 0.0
 
@@ -68,14 +63,9 @@ def main() -> None:
         print(f"Processing `{os.path.abspath(hr_image_path)}`...")
         # Make high-resolution image
         hr_image = cv2.imread(hr_image_path).astype(np.float32) / 255.0
-        ###hr_image_height, hr_image_width = hr_image.shape[:2]
-        ###hr_image_height_remainder = hr_image_height % 12
-        ###hr_image_width_remainder = hr_image_width % 12
-        ###hr_image = hr_image[:hr_image_height - hr_image_height_remainder, :hr_image_width - hr_image_width_remainder, ...]
 
-        # Make low-resolution image
+        # Get low-resolution image
         lr_image = cv2.imread(lr_image_path).astype(np.float32) / 255.0
-        ###lr_image = imgproc.imresize(hr_image, 1 / config.upscale_factor)
         lr_image = imgproc.imresize(lr_image, config.upscale_factor)
 
         # Convert BGR image to YCbCr image
@@ -94,9 +84,9 @@ def main() -> None:
         with torch.no_grad():
             sr_y_tensor = model(lr_y_tensor).clamp_(0, 1.0)
 
-        # Cal PSNR
-        psnr_val = 10. * torch.log10(1. / torch.mean((sr_y_tensor - hr_y_tensor) ** 2))
-        total_psnr += psnr_val
+        ## Grayscale SSIM Calculation 
+        psnr_val_grayscale = 10. * torch.log10(1. / torch.mean((sr_y_tensor - hr_y_tensor) ** 2))
+        total_psnr_grayscale += psnr_val_grayscale
         
 
         # Save image
@@ -105,26 +95,42 @@ def main() -> None:
         sr_ycbcr_image = cv2.merge([sr_y_image, hr_cb_image, hr_cr_image])
         sr_image = imgproc.ycbcr2bgr(sr_ycbcr_image)
         cv2.imwrite(sr_image_path, sr_image * 255.0)
-        
-        ## SSIM Calculationa and concatenation
-        # Remove singleton channel if present
+    
+        ## Dimensioning
         if sr_y_image.ndim == 3 and sr_y_image.shape[2] == 1:
             sr_y_image = sr_y_image[:, :, 0]  # Or np.squeeze(sr_y_image, axis=2)
+            
+        ## Visualize Residuals
+        residual = sr_y_image - lr_y_image
+        vis_residual = cv2.normalize(residual, None, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX)
+        vis_residual = vis_residual.astype(np.uint8)
+        save_path =  os.path.join(config.sr_dir, f"{filename}_residual.png")
+        cv2.imwrite(save_path, vis_residual)
 
+        
+        ## SSIM Calculation
         ssim_val = compare_ssim(sr_y_image, hr_y_image, data_range=1.0)
         total_ssim += ssim_val
         ssim_val_rgb = compare_ssim(sr_image, hr_image, data_range=1.0, channel_axis = -1)
         total_ssim_rgb += ssim_val_rgb
+
+        ## RGB SSIM Calculation
+        mse = np.mean((sr_image - hr_image)**2)
+        if mse == 0:
+            return float("inf")
+        psnr_rgb = 10 * np.log10(1.0 / mse)
+        total_psnr_rgb += psnr_rgb
         
 
         save_path = os.path.join(config.sr_dir, "comparisions", f"compare_{index+1}.png")
         os.makedirs(os.path.dirname(save_path), exist_ok = True)
-        save_comparision_images(lr_image, sr_image, hr_image, psnr_val, ssim_val, save_path)
+        save_comparision_images(lr_image, sr_image, hr_image, psnr_val_grayscale, ssim_val, save_path)
     
 
-    print(f"PSNR: {total_psnr / total_files:4.2f}dB.\n")
-    print(f"Average SSIM(Grayscale): {total_ssim / total_files:4.2f}")
-    print(f"Average SSIM(RGB): {total_ssim_rgb / total_files:4.2f}")
+    print(f"PSNR(Grayscale): {total_psnr_grayscale / total_files:4.2f}dB.\n")
+    print(f"PSNR(RGB): {total_psnr_rgb / total_files:4.2f}dB.\n")
+    print(f"Average SSIM(Grayscale): {total_ssim / total_files:4.4f}")
+    print(f"Average SSIM(RGB): {total_ssim_rgb / total_files:4.4f}")
 
 
 if __name__ == "__main__":

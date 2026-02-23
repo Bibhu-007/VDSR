@@ -39,10 +39,10 @@ if mode == "train":
     # Dataset
     train_image_dir = f"data/Training and Validation/VDSR/{scaling}/train"
     valid_image_dir = f"data/Training and Validation/VDSR/{scaling}/valid"
-    test_image_dir = "data/Testing/Scale 2/Set 5/HR" ## Choose suitable dataset as per choice
+    test_image_dir = f"data/Testing/{scaling}/Set 5/HR" ## Choose suitable dataset as per choice
 
     image_size = 41
-    batch_size = 16
+    batch_size = 64
     num_workers = 4
 
     # Incremental training and migration training

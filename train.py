@@ -37,7 +37,7 @@ from model import VDSR
 
 def main():
     # Initialize training to generate network evaluation indicators
-    best_psnr = 0.0
+    best_val_psnr = float("-inf")
 
     train_prefetcher, valid_prefetcher, test_prefetcher = load_dataset()
     print("Load train dataset and valid dataset successfully.")
@@ -60,7 +60,7 @@ def main():
         checkpoint = torch.load(config.resume, map_location=lambda storage, loc: storage)
         # Restore the parameters in the training node to this point
         config.start_epoch = checkpoint["epoch"]
-        best_psnr = checkpoint["best_psnr"]
+        best_val_psnr = checkpoint.get("best_val_psnr", float("-inf"))
         # Load checkpoint state dict. Extract the fitted model weights
         model_state_dict = model.state_dict()
         new_state_dict = {k: v for k, v in checkpoint["state_dict"].items() if k in model_state_dict}
@@ -89,18 +89,18 @@ def main():
 
     for epoch in range(config.start_epoch, config.epochs):
         train(model, train_prefetcher, psnr_criterion, pixel_criterion, optimizer, epoch, scaler, writer)
-        _ = validate(model, valid_prefetcher, psnr_criterion, epoch, writer, "Valid")
-        psnr = validate(model, test_prefetcher, psnr_criterion, epoch, writer, "Test")
+        val_psnr = validate(model, valid_prefetcher, psnr_criterion, epoch, writer, "Valid")
+        test_psnr = validate(model, test_prefetcher, psnr_criterion, epoch, writer, "Test")
         print("\n")
 
         # Update lr
         scheduler.step()
 
         # Automatically save the model with the highest index
-        is_best = psnr > best_psnr
-        best_psnr = max(psnr, best_psnr)
+        is_best = val_psnr > best_val_psnr
+        best_val_psnr = max(val_psnr, best_val_psnr)
         torch.save({"epoch": epoch + 1,
-                    "best_psnr": best_psnr,
+                    "best_val_psnr": best_val_psnr,
                     "state_dict": model.state_dict(),
                     "optimizer": optimizer.state_dict(),
                     "scheduler": scheduler.state_dict()},
@@ -178,6 +178,8 @@ def define_scheduler(optimizer) -> lr_scheduler.StepLR:
 
 
 def train(model, train_prefetcher, psnr_criterion, pixel_criterion, optimizer, epoch, scaler, writer) -> None:
+
+       
     # Calculate how many iterations there are under epoch
     batches = len(train_prefetcher)
 
@@ -210,7 +212,7 @@ def train(model, train_prefetcher, psnr_criterion, pixel_criterion, optimizer, e
         # Mixed precision training
         with torch.amp.autocast(device_type='cuda'):
             sr = model(lr)
-            loss = pixel_criterion(sr, hr)
+            loss = 0.5 * pixel_criterion(sr, hr) / sr.size(0)
 
         # Gradient zoom + gradient clipping
         scaler.scale(loss).backward()
@@ -270,8 +272,6 @@ def validate(model, valid_prefetcher, psnr_criterion, epoch, writer, mode) -> fl
                 sr = model(lr)
 
             # measure accuracy and record loss
-            ssim_value = calculate_ssim(sr, hr)
-            ssims.update(ssim_value, lr.size(0))
             psnr = 10. * torch.log10(1. / psnr_criterion(sr, hr))
             psnres.update(psnr.item(), lr.size(0))
             
@@ -294,10 +294,8 @@ def validate(model, valid_prefetcher, psnr_criterion, epoch, writer, mode) -> fl
 
     if mode == "Valid":
         writer.add_scalar("Valid/PSNR", psnres.avg, epoch + 1)
-        writer.add_scalar("Valid/SSIM", ssims.avg, epoch + 1)
     elif mode == "Test":
         writer.add_scalar("Test/PSNR", psnres.avg, epoch + 1)
-        writer.add_scalar("Test/SSIM", ssims.avg, epoch + 1)
     else:
         raise ValueError("Unsupported mode, please use `Valid` or `Test`.")
 
